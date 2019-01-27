@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Threading;
 
@@ -9,9 +10,17 @@ namespace AudioTraySwitcher
 {
     public partial class App
     {
+        private readonly Mutex singleInstanceMutex;
+
         public App()
         {
             DispatcherUnhandledException += App_DispatcherUnhandledException;
+
+            singleInstanceMutex = new Mutex(true, "{9378228f-4df7-4f7e-bd4e-09b911b8381c}", out var isNewInstance);
+            if (!isNewInstance)
+            {
+                Shutdown();
+            }
 
             SquirrelAwareApp.HandleEvents(
                 onInitialInstall: v => CreateShortcut(),
