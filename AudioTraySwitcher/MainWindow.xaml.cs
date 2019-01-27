@@ -1,20 +1,18 @@
-﻿using System;
+﻿using AudioSwitcher.AudioApi;
+using AudioSwitcher.AudioApi.CoreAudio;
+using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using AudioSwitcher.AudioApi;
-using AudioSwitcher.AudioApi.CoreAudio;
-using Squirrel;
 
 namespace AudioTraySwitcher
 {
     public partial class MainWindow
     {
         private readonly CoreAudioController controller = new CoreAudioController();
+        private readonly Updater updater = new Updater();
         private readonly NotifyIcon trayIcon;
 
         public MainWindow()
@@ -40,18 +38,6 @@ namespace AudioTraySwitcher
             return new ContextMenu(BuildMenuItems().ToArray());
         }
 
-        private void CheckForUpdates()
-        {
-            Task.Run(async () =>
-            {
-                string updateUrl = ConfigurationManager.AppSettings["updateUrl"];
-                using (var updateManager = await UpdateManager.GitHubUpdateManager(updateUrl))
-                {
-                    await updateManager.UpdateApp();
-                }
-            });
-        }
-
         private void ShowAbout()
         {
             string aboutContent = $"Version: {Assembly.GetEntryAssembly().GetName().Version}";
@@ -71,7 +57,7 @@ namespace AudioTraySwitcher
 
             result.Add(CreateSeparator());
 
-            result.Add(new MenuItem("Check For Updates", (sender, args) => CheckForUpdates()));
+            result.Add(new MenuItem("Check For Updates", (sender, args) => updater.CheckForUpdates()));
             result.Add(new MenuItem("About", (sender, args) => ShowAbout()));
 
             result.Add(CreateSeparator());
