@@ -57,12 +57,11 @@ namespace AudioTraySwitcher
 
             result.Add(CreateSeparator());
 
-            result.Add(new MenuItem("Check For Updates", (sender, args) => updater.CheckForUpdates()));
-            result.Add(new MenuItem("About", (sender, args) => ShowAbout()));
-
-            result.Add(CreateSeparator());
-
-            result.Add(CreateExitItem());
+            var moreMenuItem = new MenuItem("More");
+            moreMenuItem.MenuItems.Add(new MenuItem("Check For Updates", (sender, args) => updater.CheckForUpdates()));
+            moreMenuItem.MenuItems.Add(new MenuItem("About", (sender, args) => ShowAbout()));
+            moreMenuItem.MenuItems.Add(CreateExitItem());
+            result.Add(moreMenuItem);
 
             return result;
         }
