@@ -27,6 +27,15 @@ namespace AudioTraySwitcher
                 Visible = true
             };
 
+            trayIcon.Click += (sender, args) =>
+            {
+                if (args is MouseEventArgs mouseEventArgs && mouseEventArgs.Button == MouseButtons.Left)
+                {
+                    MethodInfo methodInfo = typeof(NotifyIcon).GetMethod("ShowContextMenu", BindingFlags.Instance | BindingFlags.NonPublic);
+                    methodInfo.Invoke(trayIcon, null);
+                }
+            };
+
             controller.AudioDeviceChanged.Subscribe(new DeviceChangeObserver(() =>
             {
                 trayIcon.ContextMenu = BuildContextMenu();
