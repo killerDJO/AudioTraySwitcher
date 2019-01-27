@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using AudioSwitcher.AudioApi;
 using AudioSwitcher.AudioApi.CoreAudio;
+using Squirrel;
 
 namespace AudioTraySwitcher
 {
@@ -25,7 +29,6 @@ namespace AudioTraySwitcher
                 Visible = true
             };
 
-
             controller.AudioDeviceChanged.Subscribe(new DeviceChangeObserver(() =>
             {
                 trayIcon.ContextMenu = BuildContextMenu();
@@ -35,6 +38,24 @@ namespace AudioTraySwitcher
         private ContextMenu BuildContextMenu()
         {
             return new ContextMenu(BuildMenuItems().ToArray());
+        }
+
+        private void CheckForUpdates()
+        {
+            Task.Run(async () =>
+            {
+                string updateUrl = ConfigurationManager.AppSettings["updateUrl"];
+                using (var updateManager = await UpdateManager.GitHubUpdateManager(updateUrl))
+                {
+                    await updateManager.UpdateApp();
+                }
+            });
+        }
+
+        private void ShowAbout()
+        {
+            string aboutContent = $"Version: {Assembly.GetEntryAssembly().GetName().Version}";
+            MessageBox.Show(aboutContent, "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private IReadOnlyCollection<MenuItem> BuildMenuItems()
@@ -47,6 +68,11 @@ namespace AudioTraySwitcher
             result.Add(CreateSeparator());
 
             result.AddRange(CreateMenuItems(devices, DeviceType.Capture));
+
+            result.Add(CreateSeparator());
+
+            result.Add(new MenuItem("Check For Updates", (sender, args) => CheckForUpdates()));
+            result.Add(new MenuItem("About", (sender, args) => ShowAbout()));
 
             result.Add(CreateSeparator());
 
